@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#0A0A0A"/>
+<title>FlowSync</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --g:#00C896;--gd:#009970;--gl:rgba(0,200,150,0.12);--gm:rgba(0,200,150,0.3);
+  --online:#00C896;--walkin:#F5A623;--walkin-l:rgba(245,166,35,0.12);
+  --rd:#FF4757;--rl:rgba(255,71,87,0.12);
+  --bg:#0A0A0A;--bg2:#111111;--bg3:#1A1A1A;--bg4:#222222;
+  --s:#1E1E1E;--s2:#2A2A2A;--s3:#333333;
+  --b:rgba(255,255,255,0.08);--bm:rgba(255,255,255,0.15);
+  --t:#F0F0F0;--t2:#A0A0A0;--t3:#606060;
+  --r:14px;--rs:10px;
+  --gold:#FFB800;--gold-l:rgba(255,184,0,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t);overflow-x:hidden}
+.screen{display:none;min-height:100vh;flex-direction:column}.screen.active{display:flex}
+
+/* LOADER */
+#app-loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px}
+.loader-ring{width:64px;height:64px;border-radius:20px;background:var(--gl);border:1px solid var(--gm);display:flex;align-items:center;justify-content:center;font-size:28px;animation:pulse-ring 2s infinite}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 var(--gm)}50%{box-shadow:0 0 0 12px rgba(0,200,150,0)}}
+.loader-name{font-size:24px;font-weight:600;letter-spacing:-0.5px;color:var(--t)}
+.loader-sub{font-size:13px;color:var(--t3);font-weight:300}
+.spin{width:20px;height:20px;border:2px solid var(--b);border-top-color:var(--g);border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOPBAR */
+.topbar{padding:16px;background:var(--bg2);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.back{width:32px;height:32px;border-radius:50%;background:var(--s);border:1px solid var(--b);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(--t2);flex-shrink:0}
+.tb-title{font-size:15px;font-weight:600;color:var(--t)}.tb-sub{font-size:11px;color:var(--t3);margin-top:1px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--g);display:inline-block;margin-right:5px;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+.content{flex:1;padding:16px;overflow-y:auto}
+
+/* HOME */
+.home-hero{background:var(--bg2);border-bottom:1px solid var(--b);padding:40px 20px 32px;text-align:center;position:relative;overflow:hidden}
+.home-hero::before{content:'';position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(0,200,150,0.15) 0%,transparent 70%);pointer-events:none}
+.logo-hex{width:60px;height:60px;border-radius:18px;background:var(--gl);border:1px solid var(--gm);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;position:relative}
+.logo-name{font-size:24px;font-weight:600;letter-spacing:-0.5px;color:var(--t)}
+.logo-tag{font-size:12px;color:var(--t3);margin-top:6px;font-weight:300}
+.clinic-name-tag{font-size:14px;font-weight:500;color:var(--g);margin-top:8px}
+
+.portal-list{display:flex;flex-direction:column;gap:10px;padding:20px 16px}
+.section-hint{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px;padding:0 2px}
+
+.pcard{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:all 0.15s;position:relative;overflow:hidden}
+.pcard::after{content:'';position:absolute;inset:0;background:var(--gm);opacity:0;transition:opacity 0.15s}
+.pcard:active::after{opacity:0.08}
+.picon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pi-doc{background:rgba(0,150,255,0.12);border:1px solid rgba(0,150,255,0.2)}
+.pi-pat{background:var(--gl);border:1px solid var(--gm)}
+.pi-rec{background:rgba(245,166,35,0.12);border:1px solid rgba(245,166,35,0.2)}
+.pi-adm{background:rgba(255,255,255,0.05);border:1px solid var(--b)}
+.plabel{font-size:14px;font-weight:600;color:var(--t)}.pdesc{font-size:12px;color:var(--t3);margin-top:2px}
+.parr{font-size:18px;color:var(--t3);margin-left:auto}
+
+/* LIVE QUEUE PREVIEW */
+.live-preview{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:16px;margin:0 16px 4px}
+.lp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.lp-title{font-size:13px;font-weight:600;color:var(--t)}
+.lp-live{font-size:11px;color:var(--g);display:flex;align-items:center;gap:4px}
+.lp-now{background:var(--bg3);border-radius:var(--rs);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.lp-now-label{font-size:11px;color:var(--t3);margin-bottom:2px}
+.lp-now-token{font-size:18px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.lp-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.lp-stat{background:var(--bg3);border-radius:var(--rs);padding:10px 12px;text-align:center}
+.lp-stat-v{font-size:20px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.lp-stat-l{font-size:11px;color:var(--t3);margin-top:2px}
+.online-col{color:var(--online)}.walkin-col{color:var(--walkin)}
+.queue-closed-msg{background:var(--rl);border:1px solid rgba(255,71,87,0.3);border-radius:var(--rs);padding:12px 14px;font-size:13px;color:#FF8090;text-align:center}
+.queue-opens-msg{background:var(--gl);border:1px solid var(--gm);border-radius:var(--rs);padding:12px 14px;font-size:13px;color:var(--g);text-align:center;font-weight:500}
+
+/* PIN */
+.pin-wrap{padding:24px 16px;flex:1}
+.pin-card{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:28px 20px}
+.pin-heading{font-size:18px;font-weight:600;margin-bottom:4px}.pin-sub{font-size:13px;color:var(--t3);margin-bottom:28px}
+.pin-dots{display:flex;justify-content:center;gap:16px;margin-bottom:28px}
+.pdot{width:14px;height:14px;border-radius:50%;background:var(--s2);border:1px solid var(--bm);transition:all 0.15s}
+.pdot.on{background:var(--g);border-color:var(--g);box-shadow:0 0 8px var(--gm)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pkey{padding:18px 8px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--rs);font-size:22px;font-weight:500;cursor:pointer;text-align:center;font-family:'JetBrains Mono',monospace;transition:all 0.1s;color:var(--t)}
+.pkey:active{background:var(--gl);border-color:var(--gm);color:var(--g)}
+.pdel{font-size:14px;color:var(--t2);font-family:'Outfit',sans-serif;font-weight:500}
+.pin-err{font-size:13px;color:var(--rd);text-align:center;margin-top:16px;min-height:20px}
+.pin-info{font-size:13px;color:var(--g);text-align:center;margin-top:16px}
+
+/* CARDS */
+.card{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.slabel{font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;font-weight:500}
+.big-name{font-size:22px;font-weight:600;letter-spacing:-0.3px;color:var(--t)}
+.meta-text{font-size:13px;color:var(--t2);margin-top:4px}
+
+/* BUTTONS */
+.btn{width:100%;padding:14px;border:none;border-radius:var(--rs);font-size:15px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:10px;transition:all 0.15s}
+.btn-green{background:var(--g);color:#000}
+.btn-green:active{background:var(--gd)}
+.btn-green:disabled{background:var(--s3);color:var(--t3);cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid var(--b);color:var(--t2)}
+.btn-outline:active{background:var(--s2)}
+.btn-red{background:var(--rl);border:1px solid rgba(255,71,87,0.3);color:var(--rd)}
+.btn-amber{background:var(--walkin-l);border:1px solid rgba(245,166,35,0.3);color:var(--walkin)}
+.btn-review{background:var(--gold-l);border:1px solid rgba(255,184,0,0.3);color:var(--gold)}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;margin-top:0}
+
+.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
+.delay-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.dbtn{padding:12px 8px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--rs);font-size:13px;font-weight:600;color:var(--t2);cursor:pointer;text-align:center}
+.dbtn:active{background:var(--walkin-l);color:var(--walkin);border-color:rgba(245,166,35,0.3)}
+
+/* QUEUE ITEMS */
+.qlist{display:flex;flex-direction:column;gap:8px}
+.qitem{background:var(--s);border:1px solid var(--b);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color 0.15s}
+.qitem:active{border-color:var(--bm)}
+.qnum{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.qnum-online{background:var(--gl);color:var(--g);border:1px solid var(--gm)}
+.qnum-walkin{background:var(--walkin-l);color:var(--walkin);border:1px solid rgba(245,166,35,0.3)}
+.qname{font-size:14px;font-weight:600;color:var(--t)}.qsub{font-size:12px;color:var(--t3);margin-top:1px}
+
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-waiting{background:rgba(0,150,255,0.12);color:#60AFFF}
+.b-next{background:var(--walkin-l);color:var(--walkin)}
+.b-in{background:var(--gl);color:var(--g)}
+.b-new{background:rgba(0,200,150,0.1);color:var(--g)}
+.b-free{background:var(--gold-l);color:var(--gold)}
+.b-gift{background:rgba(180,100,255,0.12);color:#B464FF}
+.b-skipped{background:var(--rl);color:var(--rd)}
+.b-online{background:var(--gl);color:var(--g);font-size:10px}
+.b-walkin{background:var(--walkin-l);color:var(--walkin);font-size:10px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--s);border:1px solid var(--b);border-radius:var(--rs);padding:14px}
+.stat-v{font-size:28px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.stat-l{font-size:12px;color:var(--t3);margin-top:2px}
+
+/* BANNERS */
+.banner{border-radius:var(--rs);padding:12px 14px;margin-bottom:12px;font-size:13px;font-weight:500}
+.ban-flag{background:var(--rl);border:1px solid rgba(255,71,87,0.3);color:#FF8090}
+.ban-delay{background:var(--walkin-l);border:1px solid rgba(245,166,35,0.3);color:var(--walkin)}
+.ban-next{background:var(--walkin-l);border:1px solid rgba(245,166,35,0.3);color:var(--walkin)}
+.ban-now{background:var(--gl);border:1px solid var(--gm);color:var(--g)}
+.ban-pause{background:var(--rl);border:1px solid rgba(255,71,87,0.3);color:#FF8090;text-align:center;padding:16px}
+.ban-skipped{background:var(--rl);border:1px solid rgba(255,71,87,0.3);color:#FF8090}
+.ban-info{background:rgba(0,150,255,0.08);border:1px solid rgba(0,150,255,0.2);color:#60AFFF}
+
+/* PATIENT STATUS */
+.pos-wrap{text-align:center;padding:28px 0 20px}
+.pos-ring{width:110px;height:110px;border-radius:50%;border:3px solid var(--gl);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;flex-direction:column;transition:all 0.4s;position:relative}
+.pos-ring::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid var(--b);opacity:0.5}
+.pos-num{font-size:34px;font-weight:600;font-family:'JetBrains Mono',monospace;line-height:1}
+.pos-lbl{font-size:11px;color:var(--t3);margin-top:2px;font-weight:300}
+.pos-title{font-size:17px;font-weight:600;color:var(--t)}.pos-sub{font-size:13px;color:var(--t2);margin-top:5px;font-weight:300}
+.token-display{font-size:48px;font-weight:600;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
+.online-token{color:var(--online)}.walkin-token{color:var(--walkin)}
+
+/* FORMS */
+.flabel{font-size:12px;color:var(--t3);margin-bottom:6px;display:block;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
+.finput{width:100%;padding:13px 14px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--rs);font-size:15px;color:var(--t);font-family:'Outfit',sans-serif;margin-bottom:14px;transition:border-color 0.15s}
+.finput:focus{outline:none;border-color:var(--g);background:var(--bg4)}
+.ftextarea{width:100%;padding:13px 14px;background:var(--bg3);border:1px solid var(--b);border-radius:var(--rs);font-size:14px;color:var(--t);font-family:'Outfit',sans-serif;margin-bottom:14px;min-height:90px;resize:none;line-height:1.5}
+.ftextarea:focus{outline:none;border-color:var(--g)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:12px 14px;background:var(--bg3);border-radius:var(--rs);border:1px solid var(--b)}
+.toggle{width:46px;height:26px;border-radius:13px;background:var(--s3);border:1px solid var(--b);position:relative;cursor:pointer;flex-shrink:0;transition:all 0.2s}
+.toggle.on{background:var(--g);border-color:var(--g)}
+.tthumb{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:white;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.toggle.on .tthumb{left:23px}
+
+/* TYPE SELECTOR */
+.type-sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.type-btn{padding:16px 12px;border-radius:var(--rs);border:2px solid var(--b);background:var(--bg3);text-align:center;cursor:pointer;transition:all 0.15s}
+.type-btn.sel-online{border-color:var(--online);background:var(--gl)}
+.type-btn.sel-walkin{border-color:var(--walkin);background:var(--walkin-l)}
+.type-icon{font-size:22px;margin-bottom:6px}
+.type-label{font-size:13px;font-weight:600;color:var(--t)}
+.type-desc{font-size:11px;color:var(--t3);margin-top:3px}
+
+/* NOTE BOX */
+.doc-note-box{background:rgba(0,150,255,0.08);border:1px solid rgba(0,150,255,0.2);border-radius:var(--rs);padding:14px;margin-top:10px}
+.doc-note-label{font-size:11px;color:#60AFFF;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px}
+.doc-note-text{font-size:14px;color:var(--t);line-height:1.6;font-weight:300}
+
+/* LOYALTY */
+.stamp-row{display:flex;gap:8px;justify-content:center;margin:14px 0 10px}
+.sdot{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--b);background:var(--bg3);color:var(--t3);transition:all 0.3s}
+.sdot.filled{background:var(--g);border-color:var(--g);color:#000;font-size:16px;box-shadow:0 0 12px var(--gm)}
+
+/* REWARD CARD */
+.reward-card{background:linear-gradient(135deg,rgba(255,184,0,0.15),rgba(255,184,0,0.05));border:1px solid rgba(255,184,0,0.3);border-radius:var(--r);padding:20px;text-align:center;margin-bottom:12px}
+.gift-code-box{background:var(--bg2);border-radius:var(--rs);padding:12px 16px;margin:14px 0;border:1px solid rgba(255,184,0,0.3)}
+.gift-code{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500;color:var(--gold);letter-spacing:4px}
+
+/* CLINIC CARD */
+.clinic-item{background:var(--s);border:1px solid var(--b);border-radius:var(--rs);padding:14px;margin-bottom:10px;cursor:pointer}
+.clinic-name{font-size:14px;font-weight:600;color:var(--t)}
+.clinic-link{font-size:11px;color:var(--g);margin-top:4px;font-family:'JetBrains Mono',monospace;word-break:break-all}
+.clinic-meta{font-size:12px;color:var(--t3);margin-top:4px}
+
+/* QR CODE */
+.qr-wrap{background:white;border-radius:var(--rs);padding:16px;display:flex;flex-direction:column;align-items:center;gap:10px;margin:12px 0}
+.qr-label{font-size:12px;color:#333;font-weight:600;text-align:center}
+
+/* CALL BUTTON */
+.call-btn{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--gl);border:1px solid var(--gm);border-radius:20px;font-size:12px;font-weight:600;color:var(--g);cursor:pointer;text-decoration:none;margin-top:6px;width:fit-content}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--s);border-radius:var(--r) var(--r) 0 0;padding:24px 20px 32px;width:100%;max-width:500px;border-top:1px solid var(--b)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--t3);margin-bottom:20px}
+
+/* SETTINGS */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--b)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:500;color:var(--t)}
+.setting-sub{font-size:12px;color:var(--t3);margin-top:2px}
+.setting-input{background:var(--bg3);border:1px solid var(--b);border-radius:var(--rs);padding:8px 12px;font-size:14px;color:var(--t);font-family:'Outfit',sans-serif;width:100px;text-align:center}
+.setting-input:focus{outline:none;border-color:var(--g)}
+
+/* MISC */
+.empty{padding:32px 0;text-align:center;font-size:13px;color:var(--t3);font-weight:300}
+.divider{height:1px;background:var(--b);margin:16px 0}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.tag-online{background:var(--gl);color:var(--g)}.tag-walkin{background:var(--walkin-l);color:var(--walkin)}
+
+.toast-wrap{position:fixed;bottom:32px;left:0;right:0;display:flex;justify-content:center;pointer-events:none;z-index:9998}
+.toast{background:var(--s);color:var(--t);padding:12px 22px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transform:translateY(10px);transition:all 0.25s;max-width:88%;text-align:center;line-height:1.4;border:1px solid var(--b);box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.tg{border-color:var(--gm);color:var(--g)}
+.toast.ta{border-color:rgba(255,184,0,0.4);color:var(--gold)}
+.toast.tr{border-color:rgba(255,71,87,0.3);color:var(--rd)}
+</style>
+</head>
+<body>
+
+<div id="app-loader">
+  <div class="loader-ring">⚡</div>
+  <div class="loader-name">FlowSync</div>
+  <div class="spin"></div>
+  <div class="loader-sub" id="loader-msg">Loading...</div>
+</div>
+
+<div class="toast-wrap"><div class="toast" id="toast"></div></div>
+
+<!-- PATIENT MODAL (call number) -->
+<div class="modal-overlay" id="patient-modal" onclick="closePatientModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="pm-name"></div>
+    <div class="modal-sub" id="pm-meta"></div>
+    <div id="pm-call-wrap"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-red btn-sm" style="flex:1" onclick="noShowPatient()">No-show / Skip</button>
+      <button class="btn btn-outline btn-sm" style="flex:1" onclick="closePatientModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PATIENT MODAL -->
+<div class="modal-overlay" id="add-patient-modal" onclick="closeAddModal(event)">
+  <div class="modal">
+    <div class="modal-title">Add patient manually</div>
+    <div class="modal-sub">For patients without a mobile phone</div>
+    <label class="flabel">Patient name</label>
+    <input class="finput" id="add-pt-name" placeholder="e.g. Sunita Patel" style="margin-bottom:10px"/>
+    <label class="flabel">Type</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div id="add-online-btn" class="type-btn sel-online" onclick="setAddType('online')">
+        <div class="type-icon">🌐</div>
+        <div class="type-label" style="color:var(--online)">Online</div>
+      </div>
+      <div id="add-walkin-btn" class="type-btn" onclick="setAddType('walkin')">
+        <div class="type-icon">🚶</div>
+        <div class="type-label">Walk-in</div>
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="addPatientManually()">Add to queue →</button>
+    <button class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- PAUSE MODAL -->
+<div class="modal-overlay" id="pause-modal" onclick="closePauseModal(event)">
+  <div class="modal">
+    <div class="modal-title">Pause queue</div>
+    <div class="modal-sub">Patients will see this message</div>
+    <label class="flabel">Message to patients</label>
+    <input class="finput" id="pause-msg-input" placeholder="e.g. Doctor on break — back at 2:30 PM" style="margin-bottom:16px"/>
+    <button class="btn btn-amber" onclick="confirmPause()">Pause queue</button>
+    <button class="btn btn-outline" onclick="closePauseModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="s-home" class="screen">
+  <div class="home-hero">
+    <div class="logo-hex">⚡</div>
+    <div class="logo-name">FlowSync</div>
+    <div class="logo-tag" id="home-tag">Live clinic queue system</div>
+    <div class="clinic-name-tag" id="clinic-name-tag" style="display:none"></div>
+  </div>
+
+  <!-- LIVE QUEUE PREVIEW -->
+  <div id="live-preview-wrap" style="padding:16px 16px 0;display:none">
+    <div class="live-preview">
+      <div class="lp-header">
+        <div class="lp-title">Live Queue</div>
+        <div class="lp-live"><span class="live-dot"></span>Live</div>
+      </div>
+      <div id="lp-status-msg" style="display:none"></div>
+      <div id="lp-now" class="lp-now" style="display:none">
+        <div>
+          <div class="lp-now-label">Now with doctor</div>
+          <div class="lp-now-token" id="lp-now-token">—</div>
+        </div>
+        <div style="margin-left:auto" id="lp-now-type"></div>
+      </div>
+      <div class="lp-stats">
+        <div class="lp-stat">
+          <div class="lp-stat-v online-col" id="lp-online-count">0</div>
+          <div class="lp-stat-l">🌐 Online waiting</div>
+        </div>
+        <div class="lp-stat">
+          <div class="lp-stat-v walkin-col" id="lp-walkin-count">0</div>
+          <div class="lp-stat-l">🚶 Walk-ins waiting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="portal-list">
+    <div class="section-hint" id="portal-hint">Select your portal</div>
+    <div class="pcard" onclick="startPin('doctor')">
+      <div class="picon pi-doc">🩺</div>
+      <div><div class="plabel">Doctor portal</div><div class="pdesc">PIN protected</div></div>
+      <div class="parr">›</div>
+    </div>
+    <div class="pcard" id="checkin-card" onclick="goCheckin()">
+      <div class="picon pi-pat">🙋</div>
+      <div><div class="plabel">Check in</div><div class="pdesc">Online or walk-in</div></div>
+      <div class="parr">›</div>
+    </div>
+    <div class="pcard" onclick="startPin('reception')">
+      <div class="picon pi-rec">📋</div>
+      <div><div class="plabel">Receptionist portal</div><div class="pdesc">PIN protected</div></div>
+      <div class="parr">›</div>
+    </div>
+    <div class="pcard" id="admin-card" style="display:none" onclick="startPin('admin')">
+      <div class="picon pi-adm">⚙️</div>
+      <div><div class="plabel">Admin panel</div><div class="pdesc">Manage clinics</div></div>
+      <div class="parr">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- PIN -->
+<div id="s-pin" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-home')">‹</div>
+    <div><div class="tb-title">Enter PIN</div><div class="tb-sub">Staff access only</div></div>
+  </div>
+  <div class="pin-wrap"><div class="pin-card">
+    <div class="pin-heading" id="pin-heading">Portal</div>
+    <div class="pin-sub">Enter your 4-digit PIN to continue</div>
+    <div class="pin-dots">
+      <div class="pdot" id="pd0"></div><div class="pdot" id="pd1"></div>
+      <div class="pdot" id="pd2"></div><div class="pdot" id="pd3"></div>
+    </div>
+    <div class="pin-grid">
+      <div class="pkey" onclick="pk('1')">1</div><div class="pkey" onclick="pk('2')">2</div><div class="pkey" onclick="pk('3')">3</div>
+      <div class="pkey" onclick="pk('4')">4</div><div class="pkey" onclick="pk('5')">5</div><div class="pkey" onclick="pk('6')">6</div>
+      <div class="pkey" onclick="pk('7')">7</div><div class="pkey" onclick="pk('8')">8</div><div class="pkey" onclick="pk('9')">9</div>
+      <div class="pkey" onclick="pk('0')">0</div>
+      <div style="grid-column:span 2"><div class="pkey pdel" onclick="pdel()">⌫ delete</div></div>
+    </div>
+    <div class="pin-err" id="pin-err"></div>
+    <div class="pin-info" id="pin-info" style="display:none">Loading clinic data...</div>
+  </div></div>
+</div>
+
+<!-- CHECK-IN -->
+<div id="s-checkin" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-home')">‹</div>
+    <div><div class="tb-title">Check in</div><div class="tb-sub" id="pt-clinic-sub">Loading...</div></div>
+  </div>
+  <div class="content">
+    <div id="checkin-closed-msg" style="display:none;margin-bottom:12px"></div>
+    <div class="card">
+      <div style="font-size:16px;font-weight:600;margin-bottom:4px">Welcome</div>
+      <div style="font-size:13px;color:var(--t3);margin-bottom:18px;font-weight:300">Join the live queue · Wait anywhere you like</div>
+
+      <div class="slabel">How are you joining?</div>
+      <div class="type-sel">
+        <div id="type-online" class="type-btn" onclick="selectType('online')">
+          <div class="type-icon">🌐</div>
+          <div class="type-label">Online</div>
+          <div class="type-desc">Checking in from home</div>
+        </div>
+        <div id="type-walkin" class="type-btn" onclick="selectType('walkin')">
+          <div class="type-icon">🚶</div>
+          <div class="type-label">Walk-in</div>
+          <div class="type-desc">Already at the clinic</div>
+        </div>
+      </div>
+
+      <div id="gift-section" style="display:none;margin-bottom:4px">
+        <label class="flabel">Gift code (optional)</label>
+        <input class="finput" id="gift-input" type="text" placeholder="e.g. GIFT3K7XP2" style="text-transform:uppercase"/>
+      </div>
+
+      <label class="flabel">Your full name</label>
+      <input class="finput" id="pt-name" type="text" placeholder="e.g. Rahul Verma"/>
+      <label class="flabel">Mobile number</label>
+      <input class="finput" id="pt-phone" type="tel" placeholder="10-digit number"/>
+
+      <div class="banner ban-info" style="font-size:12px;font-weight:400;margin-bottom:14px">
+        ℹ️ This is for in-person visits only. Please check in only if you can reach the clinic. If you are late, miss your turn, or are marked as no-show for any reason, you will be moved to the next available slot or end of queue.
+      </div>
+
+      <button class="btn btn-green" id="checkin-btn" onclick="patientCheckin()">Check in →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PATIENT STATUS -->
+<div id="s-status" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-home')">‹</div>
+    <div><div class="tb-title" id="pt-status-name">Your status</div><div class="tb-sub"><span class="live-dot"></span>Live updates</div></div>
+  </div>
+  <div class="content">
+    <div id="pt-ban-next" class="banner ban-next" style="display:none">🔔 You're next — please make your way to the doctor</div>
+    <div id="pt-ban-now" class="banner ban-now" style="display:none">✓ It's your turn — please go in now!</div>
+    <div id="pt-ban-skipped" class="banner ban-skipped" style="display:none">⚠️ You were marked as not arrived. You've been moved to the next available slot.</div>
+    <div id="pt-ban-delay" class="banner ban-delay" style="display:none"></div>
+
+    <div class="card pos-wrap">
+      <div class="pos-ring" id="pt-ring">
+        <div class="pos-num" id="pt-pos-num">—</div>
+        <div class="pos-lbl">in queue</div>
+      </div>
+      <div class="pos-title" id="pt-pos-title">Calculating...</div>
+      <div class="pos-sub" id="pt-pos-sub">Please wait</div>
+    </div>
+
+    <div class="card" style="text-align:center;padding:20px">
+      <div class="slabel">Your token</div>
+      <div class="token-display" id="pt-token">—</div>
+      <div id="pt-token-type" style="margin-top:8px"></div>
+      <div style="font-size:12px;color:var(--t3);margin-top:10px;font-weight:300">Wait anywhere. We'll alert you when it's nearly your turn.</div>
+    </div>
+
+    <div id="pt-note-box" class="doc-note-box" style="display:none">
+      <div class="doc-note-label">Doctor's note</div>
+      <div class="doc-note-text" id="pt-note-text"></div>
+    </div>
+
+    <div id="stamp-card" class="card" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:14px;font-weight:600">Loyalty Stamps</div>
+        <div style="font-size:12px;color:var(--t3);background:var(--bg3);padding:3px 10px;border-radius:20px;border:1px solid var(--b)" id="stamp-label">0/4</div>
+      </div>
+      <div style="font-size:12px;color:var(--t3);margin-bottom:12px;font-weight:300" id="stamp-reward-desc">Every 4 visits earns a gift for a friend or family member</div>
+      <div class="stamp-row" id="stamp-dots"></div>
+      <div style="font-size:11px;color:var(--t3);text-align:center">ℹ️ Rewards are for friends and family, not yourself</div>
+    </div>
+
+    <div id="reward-card" class="reward-card" style="display:none">
+      <div style="font-size:28px;margin-bottom:10px">🎁</div>
+      <div style="font-size:15px;font-weight:600;color:var(--gold);margin-bottom:6px">Free Consultation Unlocked!</div>
+      <div style="font-size:13px;color:var(--t2);margin-bottom:16px;line-height:1.6;font-weight:300">You've unlocked a <strong style="color:var(--gold)" id="reward-desc-text">free consultation</strong> for a friend or family member!</div>
+      <div class="gift-code-box">
+        <div style="font-size:11px;color:var(--t3);margin-bottom:6px">Gift code · 30 days · one use only</div>
+        <div class="gift-code" id="gift-code-display">—</div>
+      </div>
+      <button class="btn btn-amber" onclick="shareGift()" style="margin-top:0">📤 Share on WhatsApp</button>
+      <div style="font-size:11px;color:var(--t3);margin-top:10px">One free use for one friend or family member</div>
+    </div>
+
+    <button class="btn btn-review" id="review-btn" style="display:none" onclick="openReview()">⭐ How was your visit?</button>
+  </div>
+</div>
+
+<!-- DOCTOR PORTAL -->
+<div id="s-doctor" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-home')">‹</div>
+    <div><div class="tb-title">Doctor portal</div><div class="tb-sub"><span class="live-dot"></span>Room control</div></div>
+  </div>
+  <div class="content">
+    <div id="doc-pause-banner" style="display:none"></div>
+
+    <div class="card">
+      <div class="slabel">Now with you</div>
+      <div class="big-name" id="doc-cur-name">—</div>
+      <div class="meta-text" id="doc-cur-meta">No patient in room</div>
+      <div id="doc-cur-badges" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"></div>
+      <div style="margin-top:14px">
+        <label class="flabel">Doctor's note (patient will see this after visit)</label>
+        <textarea class="ftextarea" id="doc-note" placeholder="e.g. Rest for 2 days. Avoid cold food and drinks."></textarea>
+      </div>
+      <div class="action-grid">
+        <button class="btn btn-green btn-sm" style="width:100%" id="ready-btn" onclick="doctorReady()">✓ Room ready</button>
+        <button class="btn btn-red btn-sm" style="width:100%" onclick="openNoShow()">⏭ No-show / Skip</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slabel">Queue controls</div>
+      <div class="delay-grid">
+        <div class="dbtn" onclick="addDelay(2)">+2 min</div>
+        <div class="dbtn" onclick="addDelay(5)">+5 min</div>
+        <div class="dbtn" onclick="addDelay(10)">+10 min</div>
+      </div>
+      <div class="action-grid" style="margin-top:10px">
+        <button class="btn btn-amber btn-sm" style="width:100%" onclick="openPauseModal()">⏸ Pause queue</button>
+        <button class="btn btn-outline btn-sm" style="width:100%" id="doc-resume-btn" style="display:none" onclick="resumeQueue()">▶ Resume</button>
+      </div>
+      <div class="action-grid" style="margin-top:8px">
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="openAddModal()">+ Add patient</button>
+        <button class="btn btn-red btn-sm" style="width:100%" onclick="confirmClearQueue()">🗑 Clear queue</button>
+      </div>
+    </div>
+
+    <div class="card" id="doc-loyalty-card" style="display:none">
+      <div class="slabel">Loyalty reward settings</div>
+      <label class="flabel">What is the free reward for patients?</label>
+      <input class="finput" id="doc-reward-input" placeholder="e.g. Free consultation + medicines" style="margin-bottom:10px"/>
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-top:0" onclick="saveRewardDesc('doc')">Save reward description</button>
+    </div>
+
+    <div class="slabel" style="margin-bottom:8px">Up next</div>
+    <div id="doc-queue" class="qlist"><div class="spin" style="margin:20px auto"></div></div>
+  </div>
+</div>
+
+<!-- RECEPTIONIST PORTAL -->
+<div id="s-reception" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-home')">‹</div>
+    <div><div class="tb-title">Receptionist portal</div><div class="tb-sub"><span class="live-dot"></span>Master view</div></div>
+  </div>
+  <div class="content">
+    <div id="rec-pause-banner" style="display:none"></div>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-v online-col" id="rec-online">0</div><div class="stat-l">🌐 Online</div></div>
+      <div class="stat"><div class="stat-v walkin-col" id="rec-walkin">0</div><div class="stat-l">🚶 Walk-ins</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-v" id="rec-total">0</div><div class="stat-l">Total in queue</div></div>
+      <div class="stat"><div class="stat-v" style="color:var(--rd)" id="rec-flags">0</div><div class="stat-l">Need assist</div></div>
+    </div>
+
+    <div id="rec-flag-banner" class="banner ban-flag" style="display:none"></div>
+    <div id="rec-delay-banner" class="banner ban-delay" style="display:none"></div>
+
+    <div class="card">
+      <div class="slabel">Queue controls</div>
+      <div class="action-grid">
+        <button class="btn btn-green btn-sm" style="width:100%" id="rec-ready-btn" onclick="doctorReady()">✓ Room ready</button>
+        <button class="btn btn-red btn-sm" style="width:100%" onclick="openNoShow()">⏭ No-show</button>
+      </div>
+      <div class="action-grid" style="margin-top:8px">
+        <button class="btn btn-amber btn-sm" style="width:100%" onclick="openPauseModal()">⏸ Pause</button>
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="resumeQueue()">▶ Resume</button>
+      </div>
+      <div class="action-grid" style="margin-top:8px">
+        <button class="btn btn-outline btn-sm" style="width:100%" onclick="openAddModal()">+ Add patient</button>
+        <button class="btn btn-red btn-sm" style="width:100%" onclick="confirmClearQueue()">🗑 Clear queue</button>
+      </div>
+      <div class="delay-grid" style="margin-top:8px">
+        <div class="dbtn" onclick="addDelay(2)">+2 min</div>
+        <div class="dbtn" onclick="addDelay(5)">+5 min</div>
+        <div class="dbtn" onclick="addDelay(10)">+10 min</div>
+      </div>
+    </div>
+
+    <div class="card" id="rec-loyalty-card" style="display:none">
+      <div class="slabel">Loyalty reward settings</div>
+      <label class="flabel">What is the free reward for patients?</label>
+      <input class="finput" id="rec-reward-input" placeholder="e.g. Free consultation + medicines" style="margin-bottom:10px"/>
+      <button class="btn btn-outline btn-sm" style="width:100%;margin-top:0" onclick="saveRewardDesc('rec')">Save reward description</button>
+    </div>
+
+    <div class="slabel" style="margin-bottom:8px">Full queue · tap patient to call or skip</div>
+    <div id="rec-queue" class="qlist"><div class="spin" style="margin:20px auto"></div></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="s-admin" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-home')">‹</div>
+    <div><div class="tb-title">Admin panel</div><div class="tb-sub">Manage clinics</div></div>
+  </div>
+  <div class="content">
+    <div class="card">
+      <div class="slabel">Create new clinic</div>
+      <label class="flabel">Clinic name</label>
+      <input class="finput" id="new-name" placeholder="e.g. Dr. Mehta Clinic, Andheri"/>
+      <label class="flabel">Doctor PIN (4 digits)</label>
+      <input class="finput" id="new-dpin" type="tel" placeholder="e.g. 1234" maxlength="4"/>
+      <label class="flabel">Receptionist PIN (4 digits)</label>
+      <input class="finput" id="new-rpin" type="tel" placeholder="e.g. 5678" maxlength="4"/>
+      <label class="flabel">Google Review link (optional)</label>
+      <input class="finput" id="new-review" type="url" placeholder="https://g.page/r/..."/>
+      <label class="flabel">Queue start time (optional)</label>
+      <input class="finput" id="new-start" type="time" placeholder="09:00"/>
+      <label class="flabel">Queue stop time (optional)</label>
+      <input class="finput" id="new-stop" type="time" placeholder="18:00"/>
+      <label class="flabel">Max patients per day (0 = unlimited)</label>
+      <input class="finput" id="new-max" type="number" placeholder="20" value="0"/>
+      <label class="flabel">No-show grace period (minutes)</label>
+      <input class="finput" id="new-grace" type="number" placeholder="5" value="5"/>
+      <div class="toggle-row">
+        <div>
+          <div class="setting-label">Enable loyalty stamps</div>
+          <div class="setting-sub">4 stamps = gift for friend/family</div>
+        </div>
+        <div class="toggle" id="loyalty-tog" onclick="toggleLoyalty()"><div class="tthumb"></div></div>
+      </div>
+      <div id="loyalty-settings" style="display:none">
+        <label class="flabel">Reward description</label>
+        <input class="finput" id="new-reward" placeholder="e.g. Free consultation + medicines"/>
+      </div>
+      <button class="btn btn-green" id="create-btn" onclick="createClinic()">Generate clinic link →</button>
+    </div>
+    <div class="slabel" style="margin-bottom:8px">All clinics</div>
+    <div id="admin-list"></div>
+  </div>
+</div>
+
+<!-- CLINIC CREATED -->
+<div id="s-created" class="screen">
+  <div class="topbar"><div class="back" onclick="go('s-admin')">‹</div>
+    <div><div class="tb-title">Clinic created!</div><div class="tb-sub">Share these details</div></div>
+  </div>
+  <div class="content">
+    <div class="card" style="text-align:center;padding:24px 20px">
+      <div style="font-size:32px;margin-bottom:12px">🎉</div>
+      <div style="font-size:17px;font-weight:600;margin-bottom:4px" id="created-cname"></div>
+      <div style="font-size:13px;color:var(--t3);margin-bottom:20px">Clinic is now live</div>
+      <div id="qr-container" class="qr-wrap"><canvas id="qr-canvas"></canvas><div class="qr-label" id="qr-label"></div></div>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;font-family:'JetBrains Mono',monospace;font-size:11px;word-break:break-all;text-align:left;margin-bottom:12px;color:var(--t2)" id="created-link"></div>
+      <button class="btn btn-green" onclick="copyLink()">Copy clinic link</button>
+      <button class="btn btn-outline" onclick="go('s-admin')">Create another</button>
+    </div>
+    <div class="card">
+      <div class="slabel">Message to send the clinic</div>
+      <div id="share-msg" style="background:var(--bg3);border-radius:var(--rs);padding:14px;font-size:13px;color:var(--t2);line-height:1.8;white-space:pre-wrap;font-weight:300"></div>
+      <button class="btn btn-green" style="margin-top:12px" onclick="copyMsg()">Copy message</button>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════
+// FIREBASE
+// ═══════════════════════════════════════
+firebase.initializeApp({
+  apiKey:"AIzaSyDJ4GnTbOQYonUYDmDRYPoK-RUQsP3f7Jw",
+  authDomain:"flow-sync-77f0b.firebaseapp.com",
+  databaseURL:"https://flow-sync-77f0b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"flow-sync-77f0b",
+  storageBucket:"flow-sync-77f0b.firebasestorage.app",
+  messagingSenderId:"91642181216",
+  appId:"1:91642181216:web:3d6ae80613f470f4333505"
+});
+const db = firebase.database();
+const ADMIN_PIN = '6026';
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let clinicId=null, clinicData=null;
+let myToken=null, myPhone=null, myType=null;
+let pinTarget='', pinEntry='';
+let unsubQ=null, unsubC=null, unsubLive=null;
+let prevStatus=null, myVisitCount=0;
+let lastLink='', lastMsg='';
+let checkinType='online';
+let addType='online';
+let loyaltyEnabled=false;
+let selectedPatient=null;
+
+function getClinicId(){return new URLSearchParams(window.location.search).get('c');}
+
+// ═══════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════
+function playDing(){
+  try{
+    const c=new(window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.frequency.value=880;o.type='sine';
+    g.gain.setValueAtTime(0.6,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.8);
+    o.start(c.currentTime);o.stop(c.currentTime+0.8);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function toast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(type?' t'+type:'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),type==='a'?4500:2600);
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function activeQueue(snap){
+  const q=[];
+  snap.forEach(c=>{const p=c.val();if(p.status!=='done')q.push({...p,_key:c.key});});
+  return q.sort((a,b)=>a.token-b.token);
+}
+
+function isQueueOpen(){
+  if(!clinicData)return true;
+  if(clinicData.paused)return false;
+  const now=new Date();
+  const hm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if(clinicData.startTime&&hm<clinicData.startTime)return false;
+  if(clinicData.stopTime&&hm>clinicData.stopTime)return false;
+  return true;
+}
+
+function timeUntilOpen(){
+  if(!clinicData?.startTime)return null;
+  const now=new Date();
+  const [h,m]=clinicData.startTime.split(':').map(Number);
+  const open=new Date(now);open.setHours(h,m,0,0);
+  if(open<=now)return null;
+  const diff=Math.round((open-now)/60000);
+  return diff;
+}
+
+function loyaltyBadge(v,sm){
+  if(!v)return'';
+  const s=sm?' style="font-size:10px;margin-left:4px"':'';
+  if(v===1)return`<span class="badge b-new"${s}>New</span>`;
+  if(v>=4&&v%4===0)return`<span class="badge b-free"${s}>🎁 Free</span>`;
+  return'';
+}
+
+function generateGiftCode(phone,visits){
+  const s=String(phone||'')+String(visits||'');
+  let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)+s.charCodeAt(i);
+  return'GIFT'+Math.abs(h).toString(36).toUpperCase().slice(0,6);
+}
+
+// 2:1 Queue logic — get next execution order
+function getExecutionQueue(rawQ){
+  const online=rawQ.filter(p=>p.type==='online'&&p.status!=='with-doctor');
+  const walkin=rawQ.filter(p=>p.type==='walkin'&&p.status!=='with-doctor');
+  const result=[];
+  let oi=0,wi=0,slot=0;
+  while(oi<online.length||wi<walkin.length){
+    if(slot%3===2){// walk-in slot
+      if(wi<walkin.length)result.push(walkin[wi++]);
+      else if(oi<online.length)result.push(online[oi++]);
+    }else{
+      if(oi<online.length)result.push(online[oi++]);
+      else if(wi<walkin.length)result.push(walkin[wi++]);
+    }
+    slot++;
+  }
+  return result;
+}
+
+function getNextPatient(rawQ){
+  const active=rawQ.filter(p=>p.status==='waiting'||p.status==='skipped');
+  const exec=getExecutionQueue(active);
+  return exec[0]||null;
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+async function init(){
+  clinicId=getClinicId();
+  if(!clinicId){
+    document.getElementById('admin-card').style.display='flex';
+    document.getElementById('portal-hint').textContent='Owner dashboard';
+    document.getElementById('home-tag').innerHTML='<span class="live-dot"></span>FlowSync Owner';
+    hideLo();return;
+  }
+  let tries=0;
+  while(tries<3){
+    try{
+      const snap=await db.ref(`clinics/${clinicId}`).get();
+      if(snap.exists()){
+        clinicData=snap.val();
+        document.getElementById('clinic-name-tag').textContent=clinicData.name;
+        document.getElementById('clinic-name-tag').style.display='block';
+        document.getElementById('home-tag').innerHTML=`<span class="live-dot"></span>${clinicData.name}`;
+        document.getElementById('pt-clinic-sub').textContent=clinicData.name;
+        document.getElementById('portal-hint').textContent=clinicData.name;
+        if(clinicData.gifts)document.getElementById('gift-section').style.display='block';
+        document.getElementById('live-preview-wrap').style.display='block';
+        setupLivePreview();
+        hideLo();return;
+      }else{
+        document.getElementById('loader-msg').textContent='Clinic not found. Check your link.';
+        hideLo(3000);return;
+      }
+    }catch(e){tries++;document.getElementById('loader-msg').textContent=`Connecting... (${tries}/3)`;await sleep(2000);}
+  }
+  document.getElementById('loader-msg').textContent='Connection failed. Check internet and refresh.';
+  hideLo(5000);
+}
+
+function hideLo(d=0){setTimeout(()=>{document.getElementById('app-loader').style.display='none';document.getElementById('s-home').classList.add('active');},d);}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+// ═══════════════════════════════════════
+// LIVE PREVIEW (before check-in)
+// ═══════════════════════════════════════
+function setupLivePreview(){
+  if(!clinicId)return;
+  if(unsubLive)unsubLive();
+  unsubLive=db.ref(`queues/${clinicId}`).on('value',snap=>renderLivePreview(snap));
+  db.ref(`clinics/${clinicId}/paused`).on('value',snap=>{
+    clinicData={...clinicData,paused:snap.val()};
+    renderLivePreview(null);
+  });
+}
+
+function renderLivePreview(snap){
+  const wrap=document.getElementById('live-preview-wrap');
+  if(!wrap)return;
+  // Queue status messages
+  const statusEl=document.getElementById('lp-status-msg');
+  const nowEl=document.getElementById('lp-now');
+  if(clinicData?.paused){
+    statusEl.className='banner ban-pause';
+    statusEl.textContent='⏸ Queue is paused — '+(clinicData.pauseMsg||'Back soon');
+    statusEl.style.display='block';
+    nowEl.style.display='none';
+  }else if(!isQueueOpen()){
+    const mins=timeUntilOpen();
+    statusEl.className='queue-opens-msg';
+    statusEl.textContent=mins?`⏰ Queue opens in ${mins} minute${mins!==1?'s':''}` :'Queue is currently closed';
+    statusEl.style.display='block';
+    nowEl.style.display='none';
+  }else{
+    statusEl.style.display='none';
+  }
+  if(!snap||!snap.exists()){
+    document.getElementById('lp-now').style.display='none';
+    document.getElementById('lp-online-count').textContent='0';
+    document.getElementById('lp-walkin-count').textContent='0';
+    document.getElementById('lp-now-token').textContent='—';
+    return;
+  }
+  const q=activeQueue(snap);
+  const cur=q.find(p=>p.status==='with-doctor');
+  const waiting=q.filter(p=>p.status==='waiting'||p.status==='skipped');
+  const onlineW=waiting.filter(p=>p.type==='online').length;
+  const walkinW=waiting.filter(p=>p.type==='walkin').length;
+  document.getElementById('lp-online-count').textContent=onlineW;
+  document.getElementById('lp-walkin-count').textContent=walkinW;
+  if(cur){
+    nowEl.style.display='flex';
+    document.getElementById('lp-now-token').textContent=`#${cur.token}`;
+    document.getElementById('lp-now-type').innerHTML=`<span class="tag tag-${cur.type||'online'}">${cur.type==='walkin'?'🚶 Walk-in':'🌐 Online'}</span>`;
+  }else{
+    nowEl.style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(unsubQ){unsubQ();unsubQ=null;}
+  if(unsubC){unsubC();unsubC=null;}
+  if(id==='s-doctor')setupDocListener();
+  if(id==='s-reception')setupRecListener();
+  if(id==='s-status')setupStatusListener();
+  if(id==='s-admin')loadAdminClinics();
+}
+
+function goCheckin(){
+  if(!isQueueOpen()){
+    const mins=timeUntilOpen();
+    if(mins)toast(`Queue opens in ${mins} minutes`,'');
+    else toast('Queue is currently closed','r');
+    return;
+  }
+  go('s-checkin');
+}
+
+// ═══════════════════════════════════════
+// PIN
+// ═══════════════════════════════════════
+async function startPin(t){
+  pinTarget=t;pinEntry='';
+  document.getElementById('pin-err').textContent='';
+  document.getElementById('pin-info').style.display='none';
+  document.getElementById('pin-heading').textContent=t==='doctor'?'Doctor portal':t==='reception'?'Receptionist portal':'Admin panel';
+  updateDots();go('s-pin');
+  if(t!=='admin'&&!clinicData){
+    document.getElementById('pin-info').style.display='block';
+    try{
+      const snap=await db.ref(`clinics/${clinicId}`).get();
+      if(snap.exists()){clinicData=snap.val();document.getElementById('pin-info').style.display='none';}
+      else document.getElementById('pin-err').textContent='Clinic not found.';
+    }catch(e){document.getElementById('pin-err').textContent='Network error. Please refresh.';}
+  }
+}
+function pk(k){if(pinEntry.length>=4)return;pinEntry+=k;updateDots();if(pinEntry.length===4)setTimeout(checkPin,150);}
+function pdel(){pinEntry=pinEntry.slice(0,-1);updateDots();document.getElementById('pin-err').textContent='';}
+function updateDots(){for(let i=0;i<4;i++)document.getElementById('pd'+i).classList.toggle('on',i<pinEntry.length);}
+function getPin(t){
+  if(t==='admin')return ADMIN_PIN;
+  if(!clinicData)return null;
+  return t==='doctor'?String(clinicData.doctorPin).trim():String(clinicData.receptionPin).trim();
+}
+function checkPin(){
+  const correct=getPin(pinTarget);
+  if(!correct){document.getElementById('pin-err').textContent='Clinic data not loaded. Please wait.';pinEntry='';updateDots();return;}
+  if(pinEntry.trim()===correct){go('s-'+pinTarget);pinEntry='';updateDots();}
+  else{document.getElementById('pin-err').textContent='Incorrect PIN. Try again.';pinEntry='';updateDots();}
+}
+
+// ═══════════════════════════════════════
+// CHECK-IN TYPE
+// ═══════════════════════════════════════
+function selectType(t){
+  checkinType=t;
+  document.getElementById('type-online').className='type-btn'+(t==='online'?' sel-online':'');
+  document.getElementById('type-walkin').className='type-btn'+(t==='walkin'?' sel-walkin':'');
+}
+function setAddType(t){
+  addType=t;
+  document.getElementById('add-online-btn').className='type-btn'+(t==='online'?' sel-online':'');
+  document.getElementById('add-walkin-btn').className='type-btn'+(t==='walkin'?' sel-walkin':'');
+}
+
+// ═══════════════════════════════════════
+// PATIENT CHECK-IN
+// ═══════════════════════════════════════
+async function patientCheckin(){
+  if(!isQueueOpen()){toast('Queue is not open right now','r');return;}
+  const name=document.getElementById('pt-name').value.trim();
+  const phone=document.getElementById('pt-phone').value.trim();
+  const giftCode=document.getElementById('gift-input')?.value.trim().toUpperCase()||'';
+  if(!name){toast('Please enter your name');return;}
+  if(!checkinType){toast('Please select online or walk-in');return;}
+  const btn=document.getElementById('checkin-btn');
+  btn.disabled=true;btn.textContent='Checking in...';
+  try{
+    // Gift code validation
+    let isGift=false;
+    if(giftCode){
+      const gs=await db.ref(`gifts/${clinicId}/${giftCode}`).get();
+      if(!gs.exists()){toast('Invalid gift code','r');btn.disabled=false;btn.textContent='Check in →';return;}
+      if(gs.val().used){toast('Gift code already used','r');btn.disabled=false;btn.textContent='Check in →';return;}
+      await db.ref(`gifts/${clinicId}/${giftCode}`).update({used:true,usedBy:name,usedAt:Date.now()});
+      isGift=true;
+    }
+    // Max patients check
+    if(clinicData?.maxPatients>0){
+      const qs=await db.ref(`queues/${clinicId}`).get();
+      const total=qs.exists()?activeQueue(qs).length:0;
+      if(total>=clinicData.maxPatients){toast('Queue is full for today','r');btn.disabled=false;btn.textContent='Check in →';return;}
+    }
+    // Loyalty
+    let visitCount=1;
+    if(phone){
+      const ps=await db.ref(`patients/${clinicId}/${phone.replace(/\D/g,'')}`).get();
+      if(ps.exists()){visitCount=(ps.val().visits||1)+1;await db.ref(`patients/${clinicId}/${phone.replace(/\D/g,'')}`).update({visits:visitCount,name,lastVisit:Date.now()});}
+      else await db.ref(`patients/${clinicId}/${phone.replace(/\D/g,'')}`).set({visits:1,name,phone,firstVisit:Date.now(),lastVisit:Date.now()});
+    }
+    // Token assignment
+    const qs=await db.ref(`queues/${clinicId}`).get();
+    const existQ=qs.exists()?activeQueue(qs):[];
+    const maxTok=existQ.length>0?Math.max(...existQ.map(p=>p.token)):0;
+    const token=maxTok+1;
+    const hasDr=existQ.find(p=>p.status==='with-doctor');
+    const hasNext=existQ.find(p=>p.status==='next');
+    const status=!hasDr&&!hasNext?'next':'waiting';
+    const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    await db.ref(`queues/${clinicId}`).push({name,token,type:checkinType,hasPhone:true,status,time:now,visitCount,phone:phone||'',isGift,note:'',checkinAt:Date.now()});
+    myToken=token;myPhone=phone;myType=checkinType;myVisitCount=visitCount;
+    document.getElementById('pt-status-name').textContent=name;
+    const tokEl=document.getElementById('pt-token');
+    tokEl.textContent=`#${token}`;
+    tokEl.className=`token-display ${checkinType==='walkin'?'walkin-token':'online-token'}`;
+    document.getElementById('pt-token-type').innerHTML=`<span class="tag tag-${checkinType}">${checkinType==='walkin'?'🚶 Walk-in':'🌐 Online'}</span>`;
+    if(clinicData?.reviewLink)document.getElementById('review-btn').style.display='block';
+    if(clinicData?.gifts)document.getElementById('gift-section').style.display='block';
+    go('s-status');
+    if(isGift)toast('🎁 Gift consultation redeemed!','g');
+    else if(visitCount===1)toast('Welcome! First visit 😊','g');
+    else if(visitCount>=4&&visitCount%4===0)toast('🎉 Free consultation unlocked for a friend!','a');
+    else toast(`Welcome back! Visit #${visitCount}`);
+    if(clinicData?.loyaltyEnabled)renderStamps(visitCount,phone);
+  }catch(e){toast('Error: '+e.message,'r');}
+  finally{btn.disabled=false;btn.textContent='Check in →';}
+}
+
+// ═══════════════════════════════════════
+// STATUS LISTENER
+// ═══════════════════════════════════════
+function setupStatusListener(){
+  if(!clinicId)return;
+  unsubQ=db.ref(`queues/${clinicId}`).on('value',snap=>updateStatus(snap));
+  unsubC=db.ref(`clinics/${clinicId}`).on('value',snap=>{
+    if(snap.exists())clinicData=snap.val();
+    const delay=clinicData?.delay||0;
+    const db2=document.getElementById('pt-ban-delay');
+    db2.style.display=delay>0?'block':'none';
+    if(delay>0)db2.textContent=`⏰ Doctor is running ${delay} min behind`;
+  });
+}
+
+function updateStatus(snap){
+  if(!myToken||!snap)return;
+  const all=[];snap.forEach(c=>all.push({...c.val(),_key:c.key}));
+  const mine=all.find(p=>p.token===myToken);
+  if(!mine)return;
+  const active=all.filter(p=>p.status!=='done'&&p.status!=='recently-done');
+  const exec=getExecutionQueue(active.filter(p=>p.status!=='with-doctor'));
+  const myPos=exec.findIndex(p=>p.token===myToken);
+  const ring=document.getElementById('pt-ring');
+  if(prevStatus&&prevStatus!==mine.status&&(mine.status==='next'||mine.status==='with-doctor'))playDing();
+  prevStatus=mine.status;
+  // Skipped notification
+  document.getElementById('pt-ban-skipped').style.display=mine.wasSkipped?'block':'none';
+  if(mine.status==='with-doctor'){
+    document.getElementById('pt-pos-num').textContent='→';
+    document.getElementById('pt-pos-title').textContent="It's your turn!";
+    document.getElementById('pt-pos-sub').textContent='Please go in now';
+    document.getElementById('pt-ban-now').style.display='block';
+    document.getElementById('pt-ban-next').style.display='none';
+    ring.style.borderColor='var(--g)';
+    if(mine.note){document.getElementById('pt-note-box').style.display='block';document.getElementById('pt-note-text').textContent=mine.note;}
+  }else if(mine.status==='recently-done'){
+    document.getElementById('pt-pos-num').textContent='✓';
+    document.getElementById('pt-pos-title').textContent='Visit complete';
+    document.getElementById('pt-pos-sub').textContent='Thank you for visiting today';
+    document.getElementById('pt-ban-now').style.display='none';
+    document.getElementById('pt-ban-next').style.display='none';
+    ring.style.borderColor='var(--g)';
+    if(mine.note){document.getElementById('pt-note-box').style.display='block';document.getElementById('pt-note-text').textContent=mine.note;}
+    if(clinicData?.reviewLink)document.getElementById('review-btn').style.display='block';
+  }else if(mine.status==='next'){
+    document.getElementById('pt-pos-num').textContent='1';
+    document.getElementById('pt-pos-title').textContent="You're next!";
+    document.getElementById('pt-pos-sub').textContent='Please make your way over';
+    document.getElementById('pt-ban-next').style.display='block';
+    document.getElementById('pt-ban-now').style.display='none';
+    ring.style.borderColor='var(--walkin)';
+  }else{
+    const pos=myPos>=0?myPos+1:'-';
+    document.getElementById('pt-pos-num').textContent=pos;
+    document.getElementById('pt-pos-title').textContent=myPos===0?'Almost your turn':`${myPos} patient${myPos!==1?'s':''} ahead`;
+    document.getElementById('pt-pos-sub').textContent='We will alert you when it is nearly your turn';
+    document.getElementById('pt-ban-next').style.display='none';
+    document.getElementById('pt-ban-now').style.display='none';
+    ring.style.borderColor='var(--gl)';
+  }
+}
+
+// ═══════════════════════════════════════
+// DOCTOR + RECEPTION SHARED
+// ═══════════════════════════════════════
+function setupDocListener(){
+  unsubQ=db.ref(`queues/${clinicId}`).on('value',snap=>{renderStaffQueue(snap,'doc');});
+  unsubC=db.ref(`clinics/${clinicId}`).on('value',snap=>{
+    if(snap.exists()){clinicData=snap.val();renderPauseBanner();showLoyaltyCards();}
+  });
+  showLoyaltyCards();
+}
+function setupRecListener(){
+  unsubQ=db.ref(`queues/${clinicId}`).on('value',snap=>{renderStaffQueue(snap,'rec');});
+  unsubC=db.ref(`clinics/${clinicId}`).on('value',snap=>{
+    if(snap.exists()){clinicData=snap.val();renderPauseBanner();showLoyaltyCards();}
+  });
+  showLoyaltyCards();
+}
+
+function renderPauseBanner(){
+  const paused=clinicData?.paused;
+  const msg=clinicData?.pauseMsg||'Queue paused';
+  ['doc','rec'].forEach(p=>{
+    const el=document.getElementById(`${p}-pause-banner`);
+    if(!el)return;
+    if(paused){el.className='banner ban-pause';el.textContent=`⏸ ${msg}`;el.style.display='block';}
+    else el.style.display='none';
+  });
+}
+
+function renderStaffQueue(snap,portal){
+  if(!snap||!snap.exists()){
+    setEmpty(portal);return;
+  }
+  const q=activeQueue(snap);
+  const cur=q.find(p=>p.status==='with-doctor');
+  const waiting=q.filter(p=>p.status==='waiting'||p.status==='skipped'||p.status==='next');
+
+  if(portal==='doc'){
+    const noteField=document.getElementById('doc-note');
+    const curTok=noteField.getAttribute('data-cur');
+    document.getElementById('doc-cur-name').textContent=cur?cur.name:'No patient in room';
+    document.getElementById('doc-cur-meta').textContent=cur?`Token #${cur.token} · ${cur.type==='walkin'?'🚶 Walk-in':'🌐 Online'} · ${cur.time}${cur.visitCount?` · Visit #${cur.visitCount}`:''}${cur.isGift?' · 🎁 Gift':''}`:'Tap Room ready to call next patient';
+    document.getElementById('doc-cur-badges').innerHTML=cur?(loyaltyBadge(cur.visitCount,false)+(cur.isGift?'<span class="badge b-gift" style="margin-left:6px">🎁 Gift</span>':'')):'';
+    if(cur&&String(cur.token)!==curTok){noteField.value=cur.note||'';noteField.setAttribute('data-cur',String(cur.token));}
+    else if(!cur){noteField.value='';noteField.setAttribute('data-cur','');}
+  }
+
+  if(portal==='rec'){
+    const onlineC=waiting.filter(p=>p.type==='online').length+(cur?.type==='online'?1:0);
+    const walkinC=waiting.filter(p=>p.type==='walkin').length+(cur?.type==='walkin'?1:0);
+    document.getElementById('rec-online').textContent=onlineC;
+    document.getElementById('rec-walkin').textContent=walkinC;
+    document.getElementById('rec-total').textContent=q.length;
+    document.getElementById('rec-flags').textContent=q.filter(p=>!p.hasPhone).length;
+    const fb=document.getElementById('rec-flag-banner');
+    const nmp=q.filter(p=>!p.hasPhone);
+    fb.style.display=nmp.length>0?'block':'none';
+    if(nmp.length>0)fb.textContent=`⚠️ ${nmp.length} patient${nmp.length>1?'s need':' needs'} in-person assistance`;
+    const del=clinicData?.delay||0;
+    const db2=document.getElementById('rec-delay-banner');
+    db2.style.display=del>0?'block':'none';
+    if(del>0)db2.textContent=`⏰ Doctor running ${del} min behind`;
+  }
+
+  // Execution order queue
+  const execOrder=getExecutionQueue(waiting);
+  const qEl=document.getElementById(`${portal}-queue`);
+  qEl.innerHTML=execOrder.length===0?'<div class="empty">Queue is empty</div>':
+    execOrder.map((p,i)=>{
+      const isWalkin=p.type==='walkin';
+      const numCls=isWalkin?'qnum-walkin':'qnum-online';
+      const lbadge=loyaltyBadge(p.visitCount,true);
+      const giftB=p.isGift?'<span class="badge b-gift" style="font-size:10px;margin-left:4px">🎁</span>':'';
+      const nopB=!p.hasPhone?'<span style="font-size:11px;color:var(--rd);margin-left:4px">📵</span>':'';
+      const skB=p.status==='skipped'?'<span class="badge b-skipped" style="font-size:10px;margin-left:4px">Skipped</span>':'';
+      const posB=i===0?'<span class="badge b-next" style="font-size:10px;margin-left:4px">Next</span>':'';
+      return`<div class="qitem" onclick="openPatientModal('${p._key}','${p.name}','${p.phone||''}','${p.token}','${p.type||'online'}')">
+        <div class="qnum ${numCls}">${isWalkin?'W':''}${p.token}</div>
+        <div style="flex:1">
+          <div class="qname">${p.name}${lbadge}${giftB}${nopB}${skB}${posB}</div>
+          <div class="qsub">${isWalkin?'🚶 Walk-in':'🌐 Online'} · ${p.time}</div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function setEmpty(portal){
+  if(portal==='doc'){
+    document.getElementById('doc-cur-name').textContent='No patient in room';
+    document.getElementById('doc-cur-meta').textContent='Queue is empty';
+    document.getElementById('doc-queue').innerHTML='<div class="empty">Queue is empty</div>';
+  }else{
+    document.getElementById('rec-total').textContent='0';
+    document.getElementById('rec-queue').innerHTML='<div class="empty">Queue is empty</div>';
+  }
+}
+
+// ═══════════════════════════════════════
+// ROOM READY
+// ═══════════════════════════════════════
+async function doctorReady(){
+  const btns=['ready-btn','rec-ready-btn'];
+  btns.forEach(b=>{const el=document.getElementById(b);if(el){el.disabled=true;el.textContent='Calling...';}});
+  try{
+    const note=document.getElementById('doc-note')?.value.trim()||'';
+    const snap=await db.ref(`queues/${clinicId}`).get();
+    if(!snap.exists()){toast('Queue is empty');return;}
+    const q=activeQueue(snap);
+    const cur=q.find(p=>p.status==='with-doctor');
+    const updates={};
+    if(cur){
+      updates[`queues/${clinicId}/${cur._key}/status`]='recently-done';
+      if(note)updates[`queues/${clinicId}/${cur._key}/note`]=note;
+    }
+    const waiting=q.filter(p=>p.status==='waiting'||p.status==='skipped'||p.status==='next');
+    const nxt=getNextPatient(waiting);
+    if(nxt){
+      updates[`queues/${clinicId}/${nxt._key}/status`]='with-doctor';
+      // Mark next in execution order
+      const remaining=waiting.filter(p=>p._key!==nxt._key);
+      const execRem=getExecutionQueue(remaining);
+      if(execRem[0])updates[`queues/${clinicId}/${execRem[0]._key}/status`]='next';
+      toast(`${nxt.name} called in`,'g');
+    }else{
+      toast('Queue is empty');
+    }
+    updates[`clinics/${clinicId}/delay`]=0;
+    await db.ref().update(updates);
+    if(document.getElementById('doc-note'))document.getElementById('doc-note').value='';
+  }catch(e){toast('Error: '+e.message,'r');}
+  finally{btns.forEach(b=>{const el=document.getElementById(b);if(el){el.disabled=false;el.textContent=b==='ready-btn'?'✓ Room ready':'✓ Room ready';}});}
+}
+
+// ═══════════════════════════════════════
+// NO-SHOW / SKIP
+// ═══════════════════════════════════════
+async function openNoShow(){
+  const snap=await db.ref(`queues/${clinicId}`).get();
+  if(!snap.exists()){toast('No patient to skip');return;}
+  const q=activeQueue(snap);
+  const cur=q.find(p=>p.status==='with-doctor')||q.find(p=>p.status==='next');
+  if(!cur){toast('No patient to skip');return;}
+  selectedPatient=cur;
+  openPatientModal(cur._key,cur.name,cur.phone||'',cur.token,cur.type||'online');
+}
+
+function openPatientModal(key,name,phone,token,type){
+  selectedPatient={_key:key,name,phone,token,type};
+  document.getElementById('pm-name').textContent=`${name} — Token #${token}`;
+  document.getElementById('pm-meta').textContent=`${type==='walkin'?'🚶 Walk-in':'🌐 Online'}`;
+  const callWrap=document.getElementById('pm-call-wrap');
+  if(phone){
+    callWrap.innerHTML=`<a href="tel:${phone}" class="call-btn">📞 Call ${phone}</a>`;
+  }else callWrap.innerHTML='<div style="font-size:13px;color:var(--t3)">No phone number on file</div>';
+  document.getElementById('patient-modal').classList.add('open');
+}
+
+function closePatientModal(e){
+  if(!e||e.target===document.getElementById('patient-modal'))
+    document.getElementById('patient-modal').classList.remove('open');
+}
+
+async function noShowPatient(){
+  if(!selectedPatient)return;
+  try{
+    // Move to end / next walk-in slot
+    const snap=await db.ref(`queues/${clinicId}`).get();
+    const q=activeQueue(snap);
+    const maxTok=Math.max(...q.map(p=>p.token));
+    await db.ref(`queues/${clinicId}/${selectedPatient._key}`).update({
+      status:'skipped',wasSkipped:true,skippedAt:Date.now(),token:maxTok+0.5
+    });
+    toast(`${selectedPatient.name} moved to next available slot`,'');
+    document.getElementById('patient-modal').classList.remove('open');
+    selectedPatient=null;
+  }catch(e){toast('Error: '+e.message,'r');}
+}
+
+// ═══════════════════════════════════════
+// DELAY
+// ═══════════════════════════════════════
+async function addDelay(m){
+  try{
+    const cur=clinicData?.delay||0;
+    await db.ref(`clinics/${clinicId}/delay`).set(cur+m);
+    toast(`+${m} min — patients notified`);
+  }catch(e){toast('Error','r');}
+}
+
+// ═══════════════════════════════════════
+// PAUSE / RESUME
+// ═══════════════════════════════════════
+function openPauseModal(){document.getElementById('pause-modal').classList.add('open');}
+function closePauseModal(e){if(!e||e.target===document.getElementById('pause-modal'))document.getElementById('pause-modal').classList.remove('open');}
+async function confirmPause(){
+  const msg=document.getElementById('pause-msg-input').value.trim()||'Queue paused — back soon';
+  await db.ref(`clinics/${clinicId}`).update({paused:true,pauseMsg:msg});
+  document.getElementById('pause-modal').classList.remove('open');
+  toast('Queue paused');
+}
+async function resumeQueue(){
+  await db.ref(`clinics/${clinicId}`).update({paused:false,pauseMsg:'',delay:0});
+  toast('Queue resumed','g');
+}
+
+// ═══════════════════════════════════════
+// ADD PATIENT MANUALLY
+// ═══════════════════════════════════════
+function openAddModal(){document.getElementById('add-patient-modal').classList.add('open');}
+function closeAddModal(e){if(!e||e.target===document.getElementById('add-patient-modal'))document.getElementById('add-patient-modal').classList.remove('open');}
+async function addPatientManually(){
+  const name=document.getElementById('add-pt-name').value.trim();
+  if(!name){toast('Please enter patient name');return;}
+  try{
+    const snap=await db.ref(`queues/${clinicId}`).get();
+    const existQ=snap.exists()?activeQueue(snap):[];
+    const maxTok=existQ.length>0?Math.max(...existQ.map(p=>p.token)):0;
+    const token=maxTok+1;
+    const hasDr=existQ.find(p=>p.status==='with-doctor');
+    const status=!hasDr?'next':'waiting';
+    const now=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    await db.ref(`queues/${clinicId}`).push({name,token,type:addType,hasPhone:false,status,time:now,visitCount:1,phone:'',isGift:false,note:'',checkinAt:Date.now(),addedByStaff:true});
+    document.getElementById('add-pt-name').value='';
+    document.getElementById('add-patient-modal').classList.remove('open');
+    toast(`${name} added to queue`,'g');
+  }catch(e){toast('Error: '+e.message,'r');}
+}
+
+// ═══════════════════════════════════════
+// CLEAR QUEUE
+// ═══════════════════════════════════════
+async function confirmClearQueue(){
+  if(!confirm('Clear entire queue? This cannot be undone.'))return;
+  try{
+    await db.ref(`queues/${clinicId}`).remove();
+    await db.ref(`clinics/${clinicId}`).update({delay:0,paused:false});
+    toast('Queue cleared','g');
+  }catch(e){toast('Error','r');}
+}
+
+// ═══════════════════════════════════════
+// LOYALTY / STAMPS
+// ═══════════════════════════════════════
+function renderStamps(visitCount,phone){
+  document.getElementById('stamp-card').style.display='block';
+  const cycle=((visitCount-1)%4)+1;
+  document.getElementById('stamp-label').textContent=`${cycle}/4`;
+  const rewardDesc=clinicData?.rewardDesc||'free consultation';
+  document.getElementById('stamp-reward-desc').textContent=`Every 4 visits earns: ${rewardDesc} — for a friend or family member`;
+  let dots='';
+  for(let i=1;i<=4;i++)dots+=`<div class="sdot ${i<=cycle?'filled':''}">${i<=cycle?'✓':'○'}</div>`;
+  document.getElementById('stamp-dots').innerHTML=dots;
+  if(cycle===4&&visitCount>=4){
+    const code=generateGiftCode(phone||myToken,visitCount);
+    document.getElementById('gift-code-display').textContent=code;
+    document.getElementById('reward-desc-text').textContent=rewardDesc;
+    document.getElementById('reward-card').style.display='block';
+    db.ref(`gifts/${clinicId}/${code}`).set({issuedTo:phone||'',issuedAt:Date.now(),used:false,visitCount});
+    db.ref(`clinics/${clinicId}/gifts`).set(true);
+  }
+}
+
+function shareGift(){
+  const code=document.getElementById('gift-code-display').textContent;
+  const cn=clinicData?.name||'the clinic';
+  const link=location.origin+location.pathname+'?c='+(clinicId||'');
+  const msg=`🎁 I've gifted you a FREE ${clinicData?.rewardDesc||'consultation'} at ${cn}!\n\nUse this code when checking in:\n*${code}*\n\nClinic link: ${link}\n\n_(Valid 30 days · One use only)_`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function openReview(){if(clinicData?.reviewLink)window.open(clinicData.reviewLink,'_blank');}
+
+// ═══════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════
+function toggleLoyalty(){
+  loyaltyEnabled=!loyaltyEnabled;
+  document.getElementById('loyalty-tog').classList.toggle('on',loyaltyEnabled);
+  document.getElementById('loyalty-settings').style.display=loyaltyEnabled?'block':'none';
+}
+
+async function loadAdminClinics(){
+  document.getElementById('admin-list').innerHTML='<div class="spin" style="margin:20px auto"></div>';
+  try{
+    const snap=await db.ref('clinics').get();
+    if(!snap.exists()){document.getElementById('admin-list').innerHTML='<div class="empty">No clinics yet</div>';return;}
+    const cs=[];snap.forEach(c=>cs.push({id:c.key,...c.val()}));
+    document.getElementById('admin-list').innerHTML=cs.map(c=>{
+      const link=`${location.origin}${location.pathname}?c=${c.id}`;
+      return`<div class="clinic-item" onclick="navigator.clipboard.writeText('${link}').then(()=>toast('Link copied!','g'))">
+        <div class="clinic-name">${c.name}</div>
+        <div class="clinic-link">${link}</div>
+        <div class="clinic-meta">Doc PIN: ${c.doctorPin} · Rec PIN: ${c.receptionPin}${c.maxPatients?` · Max: ${c.maxPatients}`:''} · tap to copy</div>
+      </div>`;
+    }).join('');
+  }catch(e){document.getElementById('admin-list').innerHTML='<div class="empty">Error loading</div>';}
+}
+
+async function createClinic(){
+  const name=document.getElementById('new-name').value.trim();
+  const dpin=document.getElementById('new-dpin').value.trim();
+  const rpin=document.getElementById('new-rpin').value.trim();
+  const review=document.getElementById('new-review').value.trim();
+  const start=document.getElementById('new-start').value;
+  const stop=document.getElementById('new-stop').value;
+  const maxP=parseInt(document.getElementById('new-max').value)||0;
+  const grace=parseInt(document.getElementById('new-grace').value)||5;
+  const reward=document.getElementById('new-reward')?.value.trim()||'free consultation';
+  if(!name||!dpin||!rpin){toast('Please fill clinic name and both PINs','r');return;}
+  if(dpin.length!==4||rpin.length!==4){toast('PINs must be exactly 4 digits','r');return;}
+  const btn=document.getElementById('create-btn');
+  btn.disabled=true;btn.textContent='Creating...';
+  try{
+    const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')+'-'+Math.random().toString(36).slice(2,4);
+    await db.ref(`clinics/${id}`).set({
+      name,doctorPin:dpin,receptionPin:rpin,
+      reviewLink:review||'',startTime:start||'',stopTime:stop||'',
+      maxPatients:maxP,gracePeriod:grace,
+      loyaltyEnabled,rewardDesc:loyaltyEnabled?reward:'',
+      delay:0,paused:false,createdAt:Date.now()
+    });
+    const link=`${location.origin}${location.pathname}?c=${id}`;
+    lastLink=link;
+    lastMsg=`Hi,\n\nYour FlowSync queue system is ready! ⚡\n\nClinic link:\n${link}\n\nDoctor PIN: ${dpin}\nReceptionist PIN: ${rpin}\n${start?`\nQueue hours: ${start} – ${stop||'close'}`:''}\n${maxP?`Max patients per day: ${maxP}`:''}\n\nHow to use:\n• Print a QR code of this link and place at front desk\n• Patients scan to join queue — no app download needed\n• Doctor & receptionist open same link and tap their portal\n• Both doctor and receptionist can control the queue\n• Patients can check live queue before arriving\n\nPowered by FlowSync`;
+    document.getElementById('created-cname').textContent=name;
+    document.getElementById('created-link').textContent=link;
+    document.getElementById('share-msg').textContent=lastMsg;
+    generateQR(link,name);
+    document.getElementById('new-name').value='';document.getElementById('new-dpin').value='';document.getElementById('new-rpin').value='';
+    document.getElementById('new-review').value='';document.getElementById('new-start').value='';document.getElementById('new-stop').value='';
+    go('s-created');
+  }catch(e){toast('Error: '+e.message,'r');}
+  finally{btn.disabled=false;btn.textContent='Generate clinic link →';}
+}
+
+// ═══════════════════════════════════════
+// QR CODE GENERATOR
+// ═══════════════════════════════════════
+function generateQR(url,name){
+  const canvas=document.getElementById('qr-canvas');
+  const size=200;canvas.width=size;canvas.height=size;
+  const ctx=canvas.getContext('2d');
+  // Simple QR using Google Charts API image
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  img.src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=000000&margin=10`;
+  img.onload=()=>{ctx.drawImage(img,0,0,size,size);};
+  img.onerror=()=>{
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,size,size);
+    ctx.fillStyle='#333';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('QR Code',size/2,size/2-10);ctx.fillText(name,size/2,size/2+10);
+  };
+  document.getElementById('qr-label').textContent=`QR Code for ${name} — tap and hold to save`;
+}
+
+function copyLink(){navigator.clipboard.writeText(lastLink).then(()=>toast('Link copied!','g')).catch(()=>toast('Copy manually from above','r'));}
+function copyMsg(){navigator.clipboard.writeText(lastMsg).then(()=>toast('Message copied!','g')).catch(()=>toast('Copy failed','r'));}
+
+// ═══════════════════════════════════════
+// REWARD DESCRIPTION EDITOR
+// ═══════════════════════════════════════
+async function saveRewardDesc(portal){
+  const input = document.getElementById(`${portal}-reward-input`);
+  const val = input.value.trim();
+  if(!val){toast('Please enter a reward description','r');return;}
+  try{
+    await db.ref(`clinics/${clinicId}/rewardDesc`).set(val);
+    clinicData = {...clinicData, rewardDesc: val};
+    toast('Reward description updated','g');
+  }catch(e){toast('Error saving','r');}
+}
+
+function showLoyaltyCards(){
+  if(!clinicData?.loyaltyEnabled) return;
+  const desc = clinicData?.rewardDesc || '';
+  ['doc','rec'].forEach(p => {
+    const card = document.getElementById(`${p}-loyalty-card`);
+    const input = document.getElementById(`${p}-reward-input`);
+    if(card){ card.style.display = 'block'; }
+    if(input && desc){ input.value = desc; }
+  });
+}
+
+// ═══════════════════════════════════════
+// START
+// ═══════════════════════════════════════
+init();
+</script>
+</body>
+</html>
+<!-- THIS LINE INTENTIONALLY LEFT BLANK - file already complete -->
